@@ -1,11 +1,13 @@
 ﻿using Autofac;
 using Autofac.Integration.WebApi;
 using MassTransit;
+using MassTransit.RabbitMqTransport;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Cors;
 using Owin;
 using System;
+using System.Configuration;
 using System.Reflection;
 using System.Threading;
 using System.Web.Http;
@@ -18,19 +20,17 @@ namespace Consumer
         public void Configuration(IAppBuilder app)
         {
             HttpConfiguration config = new HttpConfiguration();
-
-            IContainer container = null;
             var builder = new ContainerBuilder();
 
-            builder.RegisterType<FooService>().As<IFooService>().InstancePerRequest();
+            builder.RegisterType<FooService>().As<IFooService>();
+            builder.RegisterConsumers(typeof(FooConsumer).Assembly);
             builder.RegisterModule<BusModule>();
-            builder.RegisterModule<ConsumersModule>();
 
             // Register Web API controllers
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
             // Resolve dependencies
-            container = builder.Build();
+            var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
             WebApiConfig.Register(config);
