@@ -1,11 +1,13 @@
 ﻿using Autofac;
 using Autofac.Integration.WebApi;
+using INCASOL.IP.Infrastructure.Events;
 using MassTransit;
 using MassTransit.RabbitMqTransport;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Cors;
 using Owin;
+using Services;
 using System;
 using System.Configuration;
 using System.Reflection;
@@ -22,6 +24,7 @@ namespace Publisher
             HttpConfiguration config = new HttpConfiguration();
 
             IContainer container = null;
+            AutofacWebApiDependencyResolver dependencyResolver = null;
             var builder = new ContainerBuilder();
 
             builder.Register(context =>
@@ -41,12 +44,24 @@ namespace Publisher
             .As<IBus>()
             .SingleInstance();
 
+            builder.RegisterType<MyService>().As<IMyService>().InstancePerRequest();
+            builder.RegisterAssemblyTypes(AppDomain.CurrentDomain.GetAssemblies())
+                .AsClosedTypesOf(typeof(IHandle<>))
+                .AsImplementedInterfaces()
+                .InstancePerRequest();
+
+            // builder.Register(c => new QueryProcessor(c.Resolve<IComponentContext>()))
+            //builder.Register<IDomainEvents>(_ => new DomainEvents(container, "")).InstancePerRequest();
+            //builder.Register<IDomainEvents>(_ => new DomainEvents(container)).InstancePerRequest();
+            builder.RegisterType<DomainEvents>().As<IDomainEvents>().InstancePerRequest();
+
             // Register Web API controllers
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
             // Resolve dependencies
             container = builder.Build();
-            config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+            dependencyResolver = new AutofacWebApiDependencyResolver(container);
+            config.DependencyResolver = dependencyResolver;
 
             WebApiConfig.Register(config);
             SwaggerConfig.Register(config);

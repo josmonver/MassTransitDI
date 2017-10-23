@@ -147,9 +147,17 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{EB16CEA2-9A0E-4C65-B6C0-47716D701189}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Messaging\Messaging.csproj">
       <Project>{552812aa-6993-4eb0-9052-50b1feb36d38}</Project>
       <Name>Messaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Services\Services.csproj">
+      <Project>{81FC308A-CB9C-4798-9E07-4AB2ECB6BBDF}</Project>
+      <Name>Services</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
